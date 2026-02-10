@@ -61,7 +61,7 @@ if st.button("💸 Tahmini Ücreti Hesapla", type="primary"):
             # API adresi (Localhost)
             base_url = os.getenv("API_URL", "http://127.0.0.1:8000")
             api_url = f"{base_url}/predict"
-            
+            git 
             
             # POST isteği atıyoruz
             cevap = requests.post(api_url, json=veri_paketi)
