@@ -10,8 +10,10 @@ Proje veri akışı şu şekildedir:
 2.  **ETL (Extract, Transform, Load):** Veriler BigQuery'den çekilir, temizlenir ve işlenir.
 3.  **Veritabanı:** İşlenen veriler Google Cloud üzerindeki **PostgreSQL** tabanlı veritabanına kaydedilir.
 4.  **Model Eğitimi:** Veriler PostgreSQL'den okunur ve **XGBoost** algoritması ile eğitilir.
-5.  **API:** Eğitilen model **FastAPI** ile dış dünyaya açılır.
-6.  **Arayüz:** Kullanıcılar **Streamlit** ile geliştirilmiş web arayüzü üzerinden tahmin alır.
+5.  **API Geliştirme:** Eğitilen model **FastAPI** ile dış dünyaya açılır.
+6.  **Konteynerizasyon:** API uygulaması **Docker** ile imaj haline getirilir.
+7.  **Dağıtım (Deployment):** Docker imajı **Google Cloud Run** üzerinde serverless olarak canlıya alınır.
+8.  **Arayüz:** Kullanıcılar **Streamlit** ile geliştirilmiş web arayüzü üzerinden canlı servise bağlanır.
 
 ---
 
@@ -63,8 +65,8 @@ Proje ana dizininde `.env` adında bir dosya oluşturun ve veritabanı bilgileri
 
 ```env
 DB_HOST=kendi_google_cloud_ip_adresiniz
-DB_NAME=postgres
-DB_USER=postgres
+DB_NAME=user
+DB_USER=user
 DB_PASSWORD=sifreniz
 DB_PORT=5432
 GOOGLE_APPLICATION_CREDENTIALS=path/to/your/service-account.json
@@ -102,6 +104,70 @@ streamlit run app/frontend.py
 *Arayüz şu adreste açılacaktır: `http://localhost:8501`*
 
 
+
+---
+
+## 🐳 Docker ile Paketleme (API)
+
+Arka uç (Backend) API uygulamasını Docker konteyneri olarak paketlemek için:
+
+### 1. Docker İmajını Oluşturma
+Terminali proje ana dizininde açın ve imajı oluşturun:
+```bash
+docker build -t nyc-taxi-api .
+```
+
+### 2. Konteyneri Yerel Çalıştırma
+Oluşturulan imajı test etmek için:
+```bash
+docker run -d -p 8080:8080 --name nyc-taxi-container nyc-taxi-api
+```
+*API şu adreste çalışacaktır: `http://localhost:8080`*
+
+---
+
+## ☁️ Google Cloud Run ile Canlıya Alma
+
+API servisini Google Cloud Platform (GCP) üzerinde serverless olarak yayınlamak için aşağıdaki adımları izleyin.
+
+### Ön Hazırlık
+1.  **Google Cloud Projesi:** Bir proje oluşturun ve faturalandırmayı (billing) etkinleştirin.
+2.  **SDK Kurulumu:** `gcloud` CLI aracını yükleyin ve terminalde `gcloud init` komutuyla giriş yapın.
+3.  **API'leri Açın:** Cloud Run ve Container Registry (veya Artifact Registry) API'lerini konsoldan etkinleştirin.
+
+### 1. Proje Ayarı ve Yetkilendirme
+```bash
+# Proje ID'nizi aktif edin (köşeli parantezleri silip ID'nizi yazın)
+gcloud config set project [PROJE_ID]
+
+# Docker'ın Google Cloud registry'sine erişmesi için yetki verin
+gcloud auth configure-docker
+```
+
+### 2. İmajı Etiketleme ve Gönderme (Push)
+İmajı Google Container Registry'e (GCR) yüklemek için önce etiketleyin, sonra gönderin.
+
+```bash
+# Etiketleme
+docker tag nyc-taxi-api gcr.io/[PROJE_ID]/nyc-taxi-api
+
+# Gönderme (Push)
+docker push gcr.io/[PROJE_ID]/nyc-taxi-api
+```
+
+### 3. Cloud Run Üzerinde Yayınlama (Deploy)
+Yüklediğiniz imajı canlıya alın:
+
+```bash
+gcloud run deploy nyc-taxi-api-service \
+  --image gcr.io/[PROJE_ID]/nyc-taxi-api \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --port 8080
+```
+
+*İşlem başarılı olduğunda terminalde size bir **Service URL** verilecektir. Bu URL, API'nizin canlı adresidir.*
 
 ---
 
