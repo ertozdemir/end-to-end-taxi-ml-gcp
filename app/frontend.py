@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import os
 
 # ---------------------------------------------------------
 # 1. Sayfa Ayarları (Tabelayı Asıyoruz)
@@ -58,7 +59,9 @@ if st.button("💸 Tahmini Ücreti Hesapla", type="primary"):
         # B. API'ye Gönder (Garsona Seslen)
         try:
             # API adresi (Localhost)
-            api_url = "http://127.0.0.1:8000/predict"
+            base_url = os.getenv("API_URL", "http://127.0.0.1:8000")
+            api_url = f"{base_url}/predict"
+            
             
             # POST isteği atıyoruz
             cevap = requests.post(api_url, json=veri_paketi)
