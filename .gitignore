@@ -1,0 +1,21 @@
+# --- 1. GÜVENLİK (EN ÖNEMLİSİ) ---
+# İçinde şifrelerin olduğu dosyayı ASLA yükleme
+.env
+
+# --- 2. SANAL ORTAM (ÇÖP) ---
+# Kütüphanelerin olduğu o devasa klasör.
+# Bunu yüklemeyiz, 'requirements.txt' sayesinde herkes kendi kurar.
+venv/
+
+# --- 3. GEREKSİZ JUPYTER DOSYALARI ---
+# Notebook üzerinde çalışırken oluşan otomatik yedekler
+.ipynb_checkpoints/
+
+# --- 4. PYTHON DERLEME DOSYALARI ---
+# Python çalışırken oluşan __pycache__ klasörleri
+__pycache__/
+*/__pycache__/
+*.pyc
+
+ROADMAP.md
+*.log
